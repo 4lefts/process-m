@@ -1,4 +1,5 @@
 const p5 = require('p5')
+const Tone = require('tone')
 
 const proc = new p5(function(p){
 
@@ -10,6 +11,15 @@ const proc = new p5(function(p){
   let cellColour
   let margin = 10
   let isPlaying = false
+  let tempo = 90
+  let counter = 0 //nb counter is used for gui, not audio scheduling
+
+  // sequencer clock
+  const loop = new Tone.Loop(function(time){
+    counter++
+    console.log(`counter: ${counter}`)
+  })
+  Tone.Transport.bpm.value = tempo
 
   p.setup = function(){
     const cnv = p.createCanvas(800, document.documentElement.clientHeight)
@@ -20,6 +30,7 @@ const proc = new p5(function(p){
 
   p.draw = function(){
     p.background(bgColour)
+    // p.drawPlayBar()
     p.drawCells()
     p.drawPlayButton()
   }
@@ -30,8 +41,19 @@ const proc = new p5(function(p){
         p.toggleGrid(p.mouseX, p.mouseY)
         return
       } else if(p.mouseX < 100 && p.mouseY < (tracks * cellSz) + 100) {
-        isPlaying = !isPlaying
+        p.startStop()
       }
+    }
+  }
+
+  p.startStop = function(){
+    isPlaying = !isPlaying
+    if(isPlaying){
+      loop.start()
+      Tone.Transport.start()
+    } else {
+      Tone.Transport.stop()
+      loop.stop()
     }
   }
 
