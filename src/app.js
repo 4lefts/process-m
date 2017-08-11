@@ -1,0 +1,89 @@
+const p5 = require('p5')
+
+const proc = new p5(function(p){
+
+  let cellSz = 50
+  let tracks = 4
+  let steps = 16
+  let grid = []
+  let bgColour
+  let cellColour
+  let margin = 10
+  let isPlaying = false
+
+  p.setup = function(){
+    const cnv = p.createCanvas(800, document.documentElement.clientHeight)
+    bgColour = p.color(64)
+    cellColour = p.color(200)
+    p.initGrid()
+  }
+
+  p.draw = function(){
+    p.background(bgColour)
+    p.drawCells()
+    p.drawPlayButton()
+  }
+
+  p.mouseReleased = function(){
+    if( p.mouseX > 0 && p.mouseX < steps * cellSz && p.mouseY > 0){
+      if(p.mouseY < tracks * cellSz){
+        p.toggleGrid(p.mouseX, p.mouseY)
+        return
+      } else if(p.mouseX < 100 && p.mouseY < (tracks * cellSz) + 100) {
+        isPlaying = !isPlaying
+      }
+    }
+  }
+
+  p.drawPlayButton = function(){
+    p.push()
+    p.translate(0, cellSz * tracks)
+    p.noFill()
+    p.stroke(cellColour)
+    p.rect(0, 0, 100, 100)
+    p.fill(cellColour)
+    if(isPlaying){
+      p.rect(5, 5, 90, 90)
+    } else {
+      p.triangle(5, 5, 95, 50, 5, 95)
+    }
+    p.pop()
+  }
+
+  p.drawCells = function(){
+    p.push()
+    for(let i = grid.length - 1; i >= 0; i--){
+      for(let j = grid[i].length - 1; j >= 0; j--){
+        p.stroke(cellColour)
+        p.noFill()
+        p.rect(cellSz * i, cellSz * j, cellSz, cellSz)
+        if(grid[i][j]){
+          let _h = grid[i][j] * cellSz
+          p.noStroke()
+          p.fill(cellColour)
+          p.rect(cellSz * i, (cellSz * j) + _h, cellSz, cellSz + (1 - _h))
+        }
+      }
+    }
+    p.pop()
+  }
+
+  p.initGrid = function(){
+    for(let i = steps - 1; i >= 0; i--){
+      grid.push([0, 0, 0, 0])
+    }
+  }
+
+  p.toggleGrid = function(_x, _y){
+    let x = Math.floor(_x / cellSz)
+    let y = Math.floor(_y / cellSz)
+    let v = (_y / cellSz) - y //get just the decimal part
+    if(grid[x][y]){
+      grid[x][y] = 0
+    } else {
+      grid[x][y] = v
+    }
+    console.log(grid);
+  }
+
+}, 'process-container')
