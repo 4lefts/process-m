@@ -17,20 +17,23 @@ const proc = new p5(function(p){
   // sequencer clock
   const loop = new Tone.Loop(function(time){
     counter++
+    if(counter > steps - 1) counter = 0
     console.log(`counter: ${counter}`)
-  })
+  }, '16n')
   Tone.Transport.bpm.value = tempo
+  Tone.Transport.loop = true
+  Tone.Transport.loopStart
 
   p.setup = function(){
     const cnv = p.createCanvas(800, document.documentElement.clientHeight)
-    bgColour = p.color(64)
-    cellColour = p.color(200)
+    bgColour = p.color(1, 22, 39)
+    cellColour = p.color(239, 255, 233)
     p.initGrid()
   }
 
   p.draw = function(){
     p.background(bgColour)
-    // p.drawPlayBar()
+    p.drawPlayBar()
     p.drawCells()
     p.drawPlayButton()
   }
@@ -54,6 +57,15 @@ const proc = new p5(function(p){
     } else {
       Tone.Transport.stop()
       loop.stop()
+    }
+  }
+
+  p.drawPlayBar = function(){
+    if(isPlaying){
+      const c = p.color(231, 29, 54)
+      p.stroke(c)
+      p.fill(c  )
+      p.rect(counter * cellSz, 0, cellSz, tracks * cellSz)
     }
   }
 
