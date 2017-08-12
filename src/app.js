@@ -4,7 +4,7 @@ const Tone = require('tone')
 const proc = new p5(function(p){
 
   let cellSz = 50
-  let tracks = 4
+  let tracks = 8
   let steps = 16
   let grid = []
   let bgColour
@@ -104,7 +104,10 @@ const proc = new p5(function(p){
 
   p.initGrid = function(){
     for(let i = steps - 1; i >= 0; i--){
-      grid.push([0, 0, 0, 0])
+      grid[i] = []
+      for(let j = tracks - 1; j >= 0; j --){
+        grid[i][j] = 0
+      }
     }
   }
 
