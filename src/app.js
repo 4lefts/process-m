@@ -7,6 +7,7 @@ const proc = new p5(function(p){
   let tracks = 8
   let steps = 16
   let grid = []
+  let notes = ['C4', 'D4', 'E4', 'F4', 'G4', 'A4', 'B4', 'C5']
   let bgColour
   let cellColour
   let margin = 10
@@ -14,11 +15,32 @@ const proc = new p5(function(p){
   let tempo = 90
   let counter = 0 //nb counter is used for gui, not audio scheduling
 
+  const synth = new Tone.FMSynth({
+    harmonicity: 10,
+    modulationIndex: 4,
+    oscillator: {
+      type: 'sine'
+    },
+    envelope: {
+      attack: 0.005,
+      decay: 0,
+      sustain: 1,
+      release: 1
+    },
+    modulationEnvelope: {
+      attack: 0.005,
+      decay: 0.2,
+      sustain: 0.2,
+      release: 0.8
+    },
+    portamento: 0
+  }).toMaster()
+
   // sequencer clock
   const loop = new Tone.Loop(function(time){
     counter++
     if(counter > steps - 1) counter = 0
-    console.log(`counter: ${counter}`)
+    p.playNotes(grid[counter])
   }, '16n')
   Tone.Transport.bpm.value = tempo
   Tone.Transport.loop = true
@@ -57,6 +79,14 @@ const proc = new p5(function(p){
     } else {
       Tone.Transport.stop()
       loop.stop()
+    }
+  }
+
+  p.playNotes = function(stepArr){
+    for(let i = tracks - 1; i >= 0; i--){
+      if(stepArr[i]){
+        synth.triggerAttackRelease(notes[i], '16n')
+      }
     }
   }
 
