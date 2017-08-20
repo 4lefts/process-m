@@ -15,36 +15,34 @@ const proc = new p5(function(p){
   let tempo = 90
   let counter = 0 //nb counter is used for gui, not audio scheduling
 
-  const synth = new Tone.FMSynth({
-    harmonicity: 10,
-    modulationIndex: 4,
-    oscillator: {
-      type: 'sine'
+  const synth = new Tone.MultiPlayer({
+    urls: {
+      'C4': './chimes/13.mp3',
+      'D4': './chimes/15.mp3',
+      'E4': './chimes/17.mp3',
+      'F4': './chimes/18.mp3',
+      'G4': './chimes/20.mp3',
+      'A4': './chimes/22.mp3',
+      'B4': './chimes/24.mp3',
+      'C5': './chimes/25.mp3'
     },
-    envelope: {
-      attack: 0.005,
-      decay: 0,
-      sustain: 1,
-      release: 1
-    },
-    modulationEnvelope: {
-      attack: 0.005,
-      decay: 0.2,
-      sustain: 0.2,
-      release: 0.8
-    },
-    portamento: 0
+    volume: -10,
+    fadeOut: 0.1,
   }).toMaster()
 
   // sequencer clock
-  const loop = new Tone.Loop(function(time){
-    counter++
-    if(counter > steps - 1) counter = 0
-    p.playNotes(grid[counter])
-  }, '16n')
+  const loop = new Tone.Sequence(function(time, step){
+    counter = step
+    const column = grid[step]
+    for(let i = column.length - 1; i >= 0; i--){
+      if(column[i] > 0){
+        const velocity = column[i]
+        synth.start(notes[i], time, 0, '8n', 0, velocity)
+      }
+    }
+  }, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15], '16n')
   Tone.Transport.bpm.value = tempo
-  Tone.Transport.loop = true
-  Tone.Transport.loopStart
+  Tone.Transport.start()
 
   p.setup = function(){
     const cnv = p.createCanvas(800, document.documentElement.clientHeight)
@@ -75,18 +73,8 @@ const proc = new p5(function(p){
     isPlaying = !isPlaying
     if(isPlaying){
       loop.start()
-      Tone.Transport.start()
     } else {
-      Tone.Transport.stop()
       loop.stop()
-    }
-  }
-
-  p.playNotes = function(stepArr){
-    for(let i = tracks - 1; i >= 0; i--){
-      if(stepArr[i]){
-        synth.triggerAttackRelease(notes[i], '16n')
-      }
     }
   }
 
@@ -94,7 +82,7 @@ const proc = new p5(function(p){
     if(isPlaying){
       const c = p.color(231, 29, 54)
       p.stroke(c)
-      p.fill(c  )
+      p.fill(c)
       p.rect(counter * cellSz, 0, cellSz, tracks * cellSz)
     }
   }
@@ -132,6 +120,16 @@ const proc = new p5(function(p){
     p.pop()
   }
 
+  p.drawStep = function(){
+    p.push()
+    p.translate((cellSz * steps) - 100, (cellSz * tracks) + 100)
+    p.noStroke()
+    p.fill(cellColour)
+    p.textSize(72)
+    p.text(counter, 0, 0)
+    p.pop()
+  }
+
   p.initGrid = function(){
     for(let i = steps - 1; i >= 0; i--){
       grid[i] = []
@@ -150,7 +148,6 @@ const proc = new p5(function(p){
     } else {
       grid[x][y] = v
     }
-    console.log(grid);
   }
 
 }, 'process-container')
