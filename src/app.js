@@ -15,6 +15,24 @@ const proc = new p5(function(p){
   let tempo = 90
   let counter = 0 //nb counter is used for gui, not audio scheduling
 
+  const verb = new Tone.Freeverb({
+    roomSize: 0.8,
+    dampening: 2000,
+    wet: 0.2
+  }).toMaster()
+
+  const delay1 = new Tone.FeedbackDelay({
+    delayTime: '16n',
+    feedback: 0.4,
+    wet: 0.3
+  })
+
+  const delay2 = new Tone.FeedbackDelay({
+    delayTime: '8n',
+    feedback: 0.3,
+    wet: 0.2
+  })
+
   const synth = new Tone.MultiPlayer({
     urls: {
       'C4': './chimes/13.mp3',
@@ -28,21 +46,25 @@ const proc = new p5(function(p){
     },
     volume: -10,
     fadeOut: 0.1,
-  }).toMaster()
+  }).chain(delay1, delay2, verb)
 
   // sequencer clock
   const loop = new Tone.Sequence(function(time, step){
     counter = step
     const column = grid[step]
-    for(let i = column.length - 1; i >= 0; i--){
-      if(column[i] > 0){
-        const velocity = column[i]
-        synth.start(notes[i], time, 0, '8n', 0, velocity)
-      }
-    }
+    p.playStep(column, time)
   }, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15], '16n')
   Tone.Transport.bpm.value = tempo
   Tone.Transport.start()
+
+  p.playStep = function(col, t){
+    for(let i = col.length - 1; i >= 0; i--){
+      if(col[i] > 0){
+        const velocity = col[i]
+        synth.start(notes[i], t, 0, '8n', 0, velocity)
+      }
+    }
+  }
 
   p.setup = function(){
     const cnv = p.createCanvas(800, document.documentElement.clientHeight)
