@@ -9,6 +9,8 @@ const proc = new p5(function(p){
   let grid = []
   let notes = ['C3', 'C#3', 'D3', 'D#3', 'E3', 'F3', 'F#3', 'G3', 'G#3', 'A3', 'A#3', 'B3', 'C4', 'C#4', 'D4', 'D#4', 'E4', 'F4', 'F#4', 'G4', 'G#4', 'A4', 'A#4', 'B4', 'C5']
   let scale = []
+  const scaleNames = ['ionian', 'dorian', 'phrygian', 'lydian', 'mixolydian', 'aeolian', 'locrian', 'diminished']
+  let currentScaleName = scaleNames[1]
   const roots = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
   let root = 'C'
   let editingRoot = false
@@ -104,17 +106,18 @@ const proc = new p5(function(p){
     cellColour = p.color(239, 255, 233)
     highLightColour = p.color(231, 29, 54)
     p.initGrid()
-    scale = p.makeScale(root, roots, 'phrygian', notes)
+    scale = p.makeScale(root, roots, currentScaleName, notes)
   }
 
   p.draw = function(){
-    if(editingRoot) p.updateScale()
+    if(editingRoot) p.updateRoot()
     if(editingTempo) p.updateTempo()
     p.background(bgColour)
     p.drawPlayBar()
     p.drawCells()
     p.drawPlayButton()
     p.drawNumber(2, 'root', root, editingRoot)
+    p.drawScaleControls()
     p.drawNumber(12, 'bpm', tempo, editingTempo)
     p.drawNumber(14, 'step', counter, false)
   }
@@ -138,6 +141,8 @@ const proc = new p5(function(p){
           return
         } else if(p.mouseX < 100 && p.mouseY < (tracks * cellSz) + 100) {
           p.startStop()
+        } else if(p.mouseX > cellSz * 4 && p.mouseX < cellSz * 12 && p.mouseY < (tracks * cellSz) + 100){
+          p.updateScale()
         }
       }
     }
@@ -159,9 +164,18 @@ const proc = new p5(function(p){
     Tone.Transport.bpm.value = tempo
   }
 
-  p.updateScale = function(){
+  p.updateRoot = function(){
     root = roots[p.constrain(p.map(p.mouseY, 0, p.height, 11, 0), 0, 11).toFixed(0)]
-    scale = p.makeScale(root, roots, 'phrygian', notes)
+    scale = p.makeScale(root, roots, currentScaleName, notes)
+  }
+
+  p.updateScale = function(){
+    const x = Math.floor((p.mouseX - (cellSz * 4)) / (cellSz * 2))
+    const y = Math.floor((p.mouseY - (tracks * cellSz)) / cellSz)
+    const s = (y * 4) + x
+    currentScaleName = scaleNames[s]
+    console.log(currentScaleName)
+    scale = p.makeScale(root, roots, currentScaleName, notes)
   }
 
   p.drawPlayBar = function(){
@@ -226,6 +240,33 @@ const proc = new p5(function(p){
     p.pop()
   }
 
+  p.drawScaleControls = function(){
+    p.push()
+    p.translate(cellSz * 4, cellSz * tracks)
+    for(let i = 0; i < scaleNames.length; i++){
+      const x = (i % 4) * cellSz * 2
+      const y = (Math.floor(i / 4) * cellSz)
+      const current = currentScaleName === scaleNames[i]
+      if(current){
+        p.fill(cellColour)
+      } else {
+        p.noFill()
+      }
+      p.stroke(cellColour)
+      p.rect(x, y, cellSz * 2, cellSz)
+      p.noStroke()
+      p.textSize(12)
+      p.textAlign(p.CENTER)
+      if(current){
+        p.fill(bgColour)
+      } else {
+        p.fill(cellColour)
+      }
+      p.text(scaleNames[i], x + cellSz, y + cellSz - p.textDescent() - margin)
+    }
+    p.pop()
+  }
+
   p.initGrid = function(){
     for(let i = steps - 1; i >= 0; i--){
       grid[i] = []
@@ -254,7 +295,8 @@ const proc = new p5(function(p){
       lydian: [0, 2, 4, 6, 7, 9, 11, 12],
       mixolydian: [0, 2, 4, 5, 7, 9, 10, 12],
       aeolian: [0, 2, 3, 5, 7, 8, 10, 12],
-      locrian: [0, 1, 3, 5, 6, 8, 10, 12]
+      locrian: [0, 1, 3, 5, 6, 8, 10, 12],
+      diminished: [0, 2, 3, 5, 6, 8, 9, 11]
     }
     const fst = rts.indexOf(rt)
     const ret = scales[type].map((note, i) => {
