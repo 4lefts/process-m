@@ -7,12 +7,17 @@ const proc = new p5(function(p){
   let tracks = 8
   let steps = 16
   let grid = []
-  let notes = ['C4', 'D4', 'E4', 'F4', 'G4', 'A4', 'B4', 'C5']
+  let notes = ['C3', 'C#3', 'D3', 'D#3', 'E3', 'F3', 'F#3', 'G3', 'G#3', 'A3', 'A#3', 'B3', 'C4', 'C#4', 'D4', 'D#4', 'E4', 'F4', 'F#4', 'G4', 'G#4', 'A4', 'A#4', 'B4', 'C5']
+  let scale = []
+  const roots = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
+  let root = 'C'
+  let editingRoot = false
   let bgColour, cellColour, highLightColour
   let margin = 10
   let isPlaying = false
   let tempo = 90
   let counter = 0 //nb counter is used for gui, not audio scheduling
+  let editingTempo = false
 
   const verb = new Tone.Freeverb({
     roomSize: 0.8,
@@ -34,12 +39,29 @@ const proc = new p5(function(p){
 
   const synth = new Tone.MultiPlayer({
     urls: {
+      'C3': './chimes/1.mp3',
+      'C#3': './chimes/2.mp3',
+      'D3': './chimes/3.mp3',
+      'D#3': './chimes/4.mp3',
+      'E3': './chimes/5.mp3',
+      'F3': './chimes/6.mp3',
+      'F#3': './chimes/7.mp3',
+      'G3': './chimes/8.mp3',
+      'G#3': './chimes/9.mp3',
+      'A3': './chimes/10.mp3',
+      'A#3': './chimes/11.mp3',
+      'B3': './chimes/12.mp3',
       'C4': './chimes/13.mp3',
+      'C#4': './chimes/14.mp3',
       'D4': './chimes/15.mp3',
+      'D#4': './chimes/16.mp3',
       'E4': './chimes/17.mp3',
       'F4': './chimes/18.mp3',
+      'F#4': './chimes/19.mp3',
       'G4': './chimes/20.mp3',
+      'G#4': './chimes/21.mp3',
       'A4': './chimes/22.mp3',
+      'A#4': './chimes/23.mp3',
       'B4': './chimes/24.mp3',
       'C5': './chimes/25.mp3'
     },
@@ -63,7 +85,7 @@ const proc = new p5(function(p){
     for(let i = col.length - 1; i >= 0; i--){
       if(col[i] > 0){
         sum += col[i]
-        noteOptions.push(notes[i])
+        noteOptions.push(scale[i])
         probabilities.push(sum)
       }
     }
@@ -82,26 +104,45 @@ const proc = new p5(function(p){
     cellColour = p.color(239, 255, 233)
     highLightColour = p.color(231, 29, 54)
     p.initGrid()
+    scale = p.makeScale(root, roots, 'major', notes)
   }
 
   p.draw = function(){
+    if(editingRoot) p.updateScale()
+    if(editingTempo) p.updateTempo()
     p.background(bgColour)
     p.drawPlayBar()
     p.drawCells()
     p.drawPlayButton()
-    p.drawTempo()
-    p.drawStep()
+    p.drawNumber(2, 'root', root, editingRoot)
+    p.drawNumber(12, 'bpm', tempo, editingTempo)
+    p.drawNumber(14, 'step', counter, false)
+  }
+
+  p.mousePressed = function(){
+    if(p.mouseX > cellSz * 12 && p.mouseX < cellSz * 14 && p.mouseY > tracks * cellSz && p.mouseY < (tracks + 2) * cellSz){
+      editingTempo = true
+    } else if(p.mouseX > cellSz * 2 && p.mouseX < cellSz * 4 && p.mouseY > tracks * cellSz && p.mouseY < (tracks + 2) * cellSz){
+      editingRoot = true
+    } else {
+      editingRoot = false
+      editingTempo = false
+    }
   }
 
   p.mouseReleased = function(){
-    if( p.mouseX > 0 && p.mouseX < steps * cellSz && p.mouseY > 0){
-      if(p.mouseY < tracks * cellSz){
-        p.toggleGrid(p.mouseX, p.mouseY)
-        return
-      } else if(p.mouseX < 100 && p.mouseY < (tracks * cellSz) + 100) {
-        p.startStop()
+    if(!editingTempo && !editingRoot){
+      if( p.mouseX > 0 && p.mouseX < steps * cellSz && p.mouseY > 0){
+        if(p.mouseY < tracks * cellSz){
+          p.toggleGrid(p.mouseX, p.mouseY)
+          return
+        } else if(p.mouseX < 100 && p.mouseY < (tracks * cellSz) + 100) {
+          p.startStop()
+        }
       }
     }
+    editingTempo = false
+    editingRoot = false
   }
 
   p.startStop = function(){
@@ -111,6 +152,16 @@ const proc = new p5(function(p){
     } else {
       loop.stop()
     }
+  }
+
+  p.updateTempo = function(){
+    tempo = p.constrain(p.map(p.mouseY, 0, p.height, 240, 40), 40, 240).toFixed(0)
+    Tone.Transport.bpm.value = tempo
+  }
+
+  p.updateScale = function(){
+    root = roots[p.constrain(p.map(p.mouseY, 0, p.height, 11, 0), 0, 11).toFixed(0)]
+    scale = p.makeScale(root, roots, 'major', notes)
   }
 
   p.drawPlayBar = function(){
@@ -154,39 +205,26 @@ const proc = new p5(function(p){
     p.pop()
   }
 
-  p.drawStep = function(){
+  p.drawNumber = function(x, label, value, editing){
     p.push()
-    p.translate(cellSz * (steps - 3), cellSz * tracks)
+    p.translate(cellSz * x, cellSz * tracks)
     p.noFill()
     p.stroke(cellColour)
-    p.rect(0, 0, cellSz * 3, cellSz * 2)
+    p.rect(0, 0, cellSz * 2, cellSz * 2)
     p.noStroke()
-    p.fill(cellColour)
+    if(editing){
+      p.fill(highLightColour)
+    } else {
+      p.fill(cellColour)
+    }
     p.textSize(12)
     p.textAlign(p.left)
-    p.text('step:', margin, p.textAscent() + margin)
-    p.textSize(72)
+    p.text(`${label}:`, margin, p.textAscent() + margin)
+    p.textSize(48)
     p.textAlign(p.RIGHT)
-    p.text(counter, (cellSz * 3) - margin, (cellSz * 2) - margin)
+    p.text(value, (cellSz * 2) - margin, (cellSz * 2) - margin)
     p.pop()
   }
-
-  p.drawTempo = function(){
-      p.push()
-      p.translate(cellSz * (steps - 6), cellSz * tracks)
-      p.noFill()
-      p.stroke(cellColour)
-      p.rect(0, 0, cellSz * 3, cellSz * 2)
-      p.noStroke()
-      p.fill(cellColour)
-      p.textSize(12)
-      p.textAlign(p.left)
-      p.text('bpm:', margin, p.textAscent() + margin)
-      p.textSize(72)
-      p.textAlign(p.RIGHT)
-      p.text(tempo, (cellSz * 3) - margin, (cellSz * 2) - margin)
-      p.pop()
-    }
 
   p.initGrid = function(){
     for(let i = steps - 1; i >= 0; i--){
@@ -206,6 +244,19 @@ const proc = new p5(function(p){
     } else {
       grid[x][y] = v
     }
+  }
+
+  p.makeScale = function(rt, rts, type, allNotes){
+    const scales = {
+      major: [0, 2, 4, 5, 7, 9, 11, 12]
+    }
+    const fst = rts.indexOf(rt)
+    const ret = scales[type].map((note, i) => {
+      const currentInterval = fst + scales[type][i]
+      return allNotes[currentInterval]
+    })
+    console.log(fst)
+    return ret
   }
 
 }, 'process-container')
