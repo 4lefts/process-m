@@ -57,21 +57,23 @@ const proc = new p5(function(p){
   Tone.Transport.start()
 
   p.playStep = function(col, t){
-    let noteOptions = {}
+    let noteOptions = []
+    let probabilities = []
     let sum = 0
     for(let i = col.length - 1; i >= 0; i--){
       if(col[i] > 0){
-        noteOptions[col[i]] = notes[i]
         sum += col[i]
+        noteOptions.push(notes[i])
+        probabilities.push(sum)
       }
     }
-    // const roll = Math.random()
-    console.log(`noteOptions is ${JSON.stringify(noteOptions)}, sum is ${sum}`)
-    // for(let i = col.length - 1; i >= 0; i--){
-    //   if(col[i] > 0){
-    //     synth.start(notes[i], t, 0, '8n', 0, 1)
-    //   }
-    // }
+    const roll = Math.random() * sum
+    for(let i = 0; i < noteOptions.length; i++){
+      if(roll < probabilities[i]){
+        synth.start(noteOptions[i], t, 0, '8n', 0, 0.8)
+        break
+      }
+    }
   }
 
   p.setup = function(){
@@ -87,6 +89,7 @@ const proc = new p5(function(p){
     p.drawPlayBar()
     p.drawCells()
     p.drawPlayButton()
+    p.drawTempo()
     p.drawStep()
   }
 
@@ -153,20 +156,37 @@ const proc = new p5(function(p){
 
   p.drawStep = function(){
     p.push()
-    p.translate(cellSz * (steps - 2), cellSz * tracks)
+    p.translate(cellSz * (steps - 3), cellSz * tracks)
     p.noFill()
     p.stroke(cellColour)
-    p.rect(0, 0, cellSz * 2, cellSz * 2)
+    p.rect(0, 0, cellSz * 3, cellSz * 2)
     p.noStroke()
     p.fill(cellColour)
     p.textSize(12)
     p.textAlign(p.left)
     p.text('step:', margin, p.textAscent() + margin)
-    p.textSize(48)
+    p.textSize(72)
     p.textAlign(p.RIGHT)
-    p.text(counter, (cellSz * 2) - margin, (cellSz * 2) - margin)
+    p.text(counter, (cellSz * 3) - margin, (cellSz * 2) - margin)
     p.pop()
   }
+
+  p.drawTempo = function(){
+      p.push()
+      p.translate(cellSz * (steps - 6), cellSz * tracks)
+      p.noFill()
+      p.stroke(cellColour)
+      p.rect(0, 0, cellSz * 3, cellSz * 2)
+      p.noStroke()
+      p.fill(cellColour)
+      p.textSize(12)
+      p.textAlign(p.left)
+      p.text('bpm:', margin, p.textAscent() + margin)
+      p.textSize(72)
+      p.textAlign(p.RIGHT)
+      p.text(tempo, (cellSz * 3) - margin, (cellSz * 2) - margin)
+      p.pop()
+    }
 
   p.initGrid = function(){
     for(let i = steps - 1; i >= 0; i--){
@@ -186,7 +206,6 @@ const proc = new p5(function(p){
     } else {
       grid[x][y] = v
     }
-    console.log(grid);
   }
 
 }, 'process-container')
