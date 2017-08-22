@@ -120,6 +120,7 @@ const proc = new p5(function(p){
     p.drawScaleControls()
     p.drawNumber(12, 'bpm', tempo, editingTempo)
     p.drawNumber(14, 'step', counter, false)
+    p.drawInfo()
   }
 
   p.mousePressed = function(){
@@ -264,6 +265,25 @@ const proc = new p5(function(p){
       }
       p.text(scaleNames[i], x + cellSz, y + cellSz - p.textDescent() - margin)
     }
+    p.pop()
+  }
+
+  p.drawInfo = function(){
+    p.push()
+    p.translate(margin, (cellSz * (tracks + 3)) + margin)
+    p.noStroke()
+    p.fill(cellColour)
+    p.textSize(72)
+    p.textAlign(p.LEFT, p.BOTTOM)
+    const title = '//process-m'
+    const w = p.textWidth(title) + margin
+    const h = (cellSz * 3) - p.textDescent(title)
+    p.text(title, 0, 0, w, cellSz * 3)
+    p.textSize(12)
+    const description = `
+      a probabiltistic melodic step sequencer. bars entered into each step represent the likelihood of a praticular note triggering, given that more than one note note trigger has been placed on a step. if only one note is placed, it will always trigger.\n\nby stephen ball, august 2017
+    `
+    p.text(description, w + margin, - (cellSz * 2), p.width - w - (margin * 2), h)
     p.pop()
   }
 
