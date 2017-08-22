@@ -104,7 +104,7 @@ const proc = new p5(function(p){
     cellColour = p.color(239, 255, 233)
     highLightColour = p.color(231, 29, 54)
     p.initGrid()
-    scale = p.makeScale(root, roots, 'major', notes)
+    scale = p.makeScale(root, roots, 'phrygian', notes)
   }
 
   p.draw = function(){
@@ -161,7 +161,7 @@ const proc = new p5(function(p){
 
   p.updateScale = function(){
     root = roots[p.constrain(p.map(p.mouseY, 0, p.height, 11, 0), 0, 11).toFixed(0)]
-    scale = p.makeScale(root, roots, 'major', notes)
+    scale = p.makeScale(root, roots, 'phrygian', notes)
   }
 
   p.drawPlayBar = function(){
@@ -248,7 +248,13 @@ const proc = new p5(function(p){
 
   p.makeScale = function(rt, rts, type, allNotes){
     const scales = {
-      major: [0, 2, 4, 5, 7, 9, 11, 12]
+      ionian: [0, 2, 4, 5, 7, 9, 11, 12],
+      dorian: [0, 2, 3, 5, 7, 9, 10, 12],
+      phrygian: [0, 1, 3, 5, 7, 8, 10, 12],
+      lydian: [0, 2, 4, 6, 7, 9, 11, 12],
+      mixolydian: [0, 2, 4, 5, 7, 9, 10, 12],
+      aeolian: [0, 2, 3, 5, 7, 8, 10, 12],
+      locrian: [0, 1, 3, 5, 6, 8, 10, 12]
     }
     const fst = rts.indexOf(rt)
     const ret = scales[type].map((note, i) => {
