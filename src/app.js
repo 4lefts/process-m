@@ -101,7 +101,7 @@ const proc = new p5(function(p){
   }
 
   p.setup = function(){
-    const cnv = p.createCanvas(800, document.documentElement.clientHeight)
+    const cnv = p.createCanvas(801, 700)
     bgColour = p.color(1, 22, 39)
     cellColour = p.color(239, 255, 233)
     highLightColour = p.color(231, 29, 54)
@@ -257,13 +257,13 @@ const proc = new p5(function(p){
       p.rect(x, y, cellSz * 2, cellSz)
       p.noStroke()
       p.textSize(12)
-      p.textAlign(p.CENTER)
+      p.textAlign(p.CENTER, p.CENTER)
       if(current){
         p.fill(bgColour)
       } else {
         p.fill(cellColour)
       }
-      p.text(scaleNames[i], x + cellSz, y + cellSz - p.textDescent() - margin)
+      p.text(scaleNames[i], x + cellSz, y + (cellSz / 2))
     }
     p.pop()
   }
