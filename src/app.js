@@ -281,7 +281,7 @@ const proc = new p5(function(p){
     p.text(title, 0, 0, w, cellSz * 3)
     p.textSize(12)
     const description = `
-      a probabiltistic melodic step sequencer. bars entered into each step represent the likelihood of a praticular note triggering, given that more than one note note trigger has been placed on a step. if only one note is placed, it will always trigger.\n\nby stephen ball, august 2017
+      a probabiltistic melodic step sequencer. bars entered into each step represent the likelihood of a particular note triggering, given that more than one note note trigger has been placed on a step. if only one note is placed, it will always trigger.\n\nby stephen ball, august 2017
     `
     p.text(description, w + margin, - (cellSz * 2), p.width - w - (margin * 2), h)
     p.pop()
