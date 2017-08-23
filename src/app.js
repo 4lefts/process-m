@@ -94,7 +94,8 @@ const proc = new p5(function(p){
     const roll = Math.random() * sum
     for(let i = 0; i < noteOptions.length; i++){
       if(roll < probabilities[i]){
-        synth.start(noteOptions[i], t, 0, '8n', 0, 0.8)
+        const vel = (Math.random() * 0.6) + 0.4
+        synth.start(noteOptions[i], t, 0, '8n', 0, vel)
         break
       }
     }
